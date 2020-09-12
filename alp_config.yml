@@ -35,14 +35,11 @@
     body_bytes_subexp:    # string
     status_subexp:        # string
   matching_groups:
-    - /static/.+
-    - /upload/.+
-    - /new_items/.+.json
-    - /users/.+.json
-    - /items/.+.json
-    - /transactions/.+.png
-    - /categories/.+/items
-    - /items/.+/edit
-    - /items/.+/buy
-    - /transactions/.+
-    - /users/.+
+    - /images/chair/.+.png
+    - /api/estate/.+
+    - /api/chair/.+
+    - /api/chair/buy/.+
+    - /api/estate/req_doc/.+
+    - /api/recommended_estate/.+
+    - /images/* 
+    - /_next/*
