@@ -17,7 +17,10 @@ CREATE TABLE isuumo.estate
     door_width  INTEGER             NOT NULL,
     features    VARCHAR(64)         NOT NULL,
     popularity  INTEGER             NOT NULL,
-    features_bit BIGINT(64) unsigned not null default '0'
+    features_bit BIGINT(64) unsigned not null default '0',
+    door_height_range   INTEGER     NOT NULL,
+    door_width_range    INTEGER     NOT NULL,
+    rent_range  INTEGER             NOT NULL
 );
 
 CREATE TABLE isuumo.chair
