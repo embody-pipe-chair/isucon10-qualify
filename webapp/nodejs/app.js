@@ -76,7 +76,7 @@ app.get('/api/chair/low_priced', async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const cs = await query('SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?', [LIMIT]);
+    const cs = await query('SELECT * FROM chair WHERE is_stocked = TRUE ORDER BY price ASC, id ASC LIMIT ?', [LIMIT]);
     const chairs = cs.map((chair) => camelcaseKeys(chair));
     res.json({ chairs });
   } catch (e) {
@@ -187,7 +187,7 @@ app.get('/api/chair/search', async (req, res, next) => {
     return;
   }
 
-  searchQueries.push('stock > 0');
+  searchQueries.push('is_stocked = TRUE');
 
   if (!page || page != +page) {
     res.status(400).send(`page condition invalid ${page}`);
@@ -258,13 +258,13 @@ app.post('/api/chair/buy/:id', async (req, res, next) => {
   try {
     const id = req.params.id;
     await beginTransaction();
-    const [chair] = await query('SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE', [id]);
+    const [chair] = await query('SELECT * FROM chair WHERE id = ? AND is_stocked = TRUE FOR UPDATE', [id]);
     if (chair == null) {
       res.status(404).send('Not Found');
       await rollback();
       return;
     }
-    await query('UPDATE chair SET stock = ? WHERE id = ?', [chair.stock - 1, id]);
+    await query('UPDATE chair SET stock = ?, is_stocked = ? WHERE id = ?', [chair.stock - 1, chair.stock - 1 <= 0, id]);
     await commit();
     res.json({ ok: true });
   } catch (e) {
@@ -497,8 +497,8 @@ app.post('/api/chair', upload.single('chairs'), async (req, res, next) => {
       }, 0)
 
       await query(
-        'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock, features_bit) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-        [...items, featuresBit],
+        'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock, is_stocked, features_bit) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        [...items, items[12] != 0, featuresBit],
       );
     }
     await commit();
