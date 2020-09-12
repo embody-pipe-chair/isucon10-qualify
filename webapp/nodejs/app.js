@@ -490,7 +490,7 @@ app.post('/api/chair', upload.single('chairs'), async (req, res, next) => {
     const csv = parse(req.file.buffer, { skip_empty_line: true });
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
-      const features_raw = items[10];
+      const features_raw = items[9];
       const features = features_raw.split(',');
       const featuresBit = features.reduce((sum, f) => {
         return sum + featuresBitJSON.chair[f];
