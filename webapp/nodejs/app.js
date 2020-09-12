@@ -517,7 +517,7 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
       const items = csv[i];
       await query(
         'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?)',
-        [items[0], items[1], items[2], items[3], items[4], `'POINT(${items[5]} ${items[6]})')`, items[7], items[8], items[9], items[10], items[11]],
+        [items[0], items[1], items[2], items[3], items[4], `POINT(${items[5]} ${items[6]})`, items[7], items[8], items[9], items[10], items[11]],
       );
     }
     await commit();
