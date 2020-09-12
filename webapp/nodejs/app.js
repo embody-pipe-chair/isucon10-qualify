@@ -266,7 +266,7 @@ app.post('/api/chair/buy/:id', async (req, res, next) => {
       await rollback();
       return;
     }
-    await query('UPDATE chair SET stock = ?, is_stocked = ? WHERE id = ?', [chair.stock - 1, chair.stock - 1 <= 0, id]);
+    await query('UPDATE chair SET stock = ?, is_stocked = ? WHERE id = ?', [chair.stock - 1, chair.stock - 1 > 0, id]);
     await commit();
     res.json({ ok: true });
   } catch (e) {
