@@ -281,57 +281,18 @@ app.get('/api/estate/search', async (req, res, next) => {
   const { doorHeightRangeId, doorWidthRangeId, rentRangeId, features, page, perPage } = req.query;
 
   if (!!doorHeightRangeId) {
-    const doorHeight = estateSearchCondition['doorHeight'].ranges[doorHeightRangeId];
-    if (doorHeight == null) {
-      res.status(400).send('doorHeightRangeId invalid');
-      return;
-    }
-
-    if (doorHeight.min !== -1) {
-      searchQueries.push('door_height >= ? ');
-      queryParams.push(doorHeight.min);
-    }
-
-    if (doorHeight.max !== -1) {
-      searchQueries.push('door_height < ? ');
-      queryParams.push(doorHeight.max);
-    }
+    searchQueries.push('door_height_range = ? ');
+    queryParams.push(doorHeightRangeId);
   }
 
   if (!!doorWidthRangeId) {
-    const doorWidth = estateSearchCondition['doorWidth'].ranges[doorWidthRangeId];
-    if (doorWidth == null) {
-      res.status(400).send('doorWidthRangeId invalid');
-      return;
-    }
-
-    if (doorWidth.min !== -1) {
-      searchQueries.push('door_width >= ? ');
-      queryParams.push(doorWidth.min);
-    }
-
-    if (doorWidth.max !== -1) {
-      searchQueries.push('door_width < ? ');
-      queryParams.push(doorWidth.max);
-    }
+    searchQueries.push('door_width_range = ? ');
+    queryParams.push(doorWidthRangeId);
   }
 
   if (!!rentRangeId) {
-    const rent = estateSearchCondition['rent'].ranges[rentRangeId];
-    if (rent == null) {
-      res.status(400).send('rentRangeId invalid');
-      return;
-    }
-
-    if (rent.min !== -1) {
-      searchQueries.push('rent >= ? ');
-      queryParams.push(rent.min);
-    }
-
-    if (rent.max !== -1) {
-      searchQueries.push('rent < ? ');
-      queryParams.push(rent.max);
-    }
+    searchQueries.push('rent_range = ? ');
+    queryParams.push(rentRangeId);
   }
 
   if (!!features) {
@@ -519,6 +480,43 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   const commit = promisify(connection.commit.bind(connection));
   const rollback = promisify(connection.rollback.bind(connection));
+
+  function convertDoorHeightToRangeId(height) {
+    if (height < 80) {
+      return 0;
+    } else if (height < 110) {
+      return 1;
+    } else if (height < 150) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
+  function convertDoorWidthToRangeId(width) {
+    if (width < 80) {
+      return 0;
+    } else if (width < 110) {
+      return 1;
+    } else if (width < 150) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
+  function convertRentToRangeId(rent) {
+    if (rent < 50000) {
+      return 0;
+    } else if (rent < 100000) {
+      return 1;
+    } else if (rent < 150000) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
   try {
     await beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
@@ -529,8 +527,11 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
       const featuresBit = features.reduce((sum, f) => {
         return sum + (featuresBitJSON.estate[f] || 0);
       }, 0)
+      const height = convertDoorHeightToRangeId(csv[8]);
+      const width = convertDoorWidthToRangeId(csv[9]);
+      const rent = convertDoorRentToRangeId(csv[7]);
       await query(
-        'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity, features_bit) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?,?)',
+        'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity, features_bit, door_height, door_width_range, rent_range) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?,?,?,?,?)',
         [
           items[0],
           items[1],
@@ -544,6 +545,9 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
           items[10],
           items[11],
           featuresBit,
+          width,
+          height,
+          rent
         ],
       );
     }
