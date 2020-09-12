@@ -175,10 +175,10 @@ app.get('/api/chair/search', async (req, res, next) => {
 
   if (!!features) {
     const featureConditions = features.split(',');
-    const featuresBit = featureConditions.flatMap((acc, f) => {
-      return acc & featuresBitJSON.estate[f];
+    const featuresBit = featureConditions.reduce((sum, f) => {
+      return sum + featuresBitJSON.chair[f];
     }, 0);
-    searchQueries.push("~features_bit&? = 0");
+    searchQueries.push("~features_bit & ? = 0");
     queryParams.push(featuresBit)
   }
 
@@ -336,10 +336,10 @@ app.get('/api/estate/search', async (req, res, next) => {
 
   if (!!features) {
     const featureConditions = features.split(',');
-    const featuresBit = featureConditions.flatMap((acc, f) => {
-      return acc & featuresBitJSON.estate[f];
+    const featuresBit = featureConditions.reduce((sum, f) => {
+      return sum + featuresBitJSON.estate[f];
     }, 0);
-    searchQueries.push("~features_bit&? = 0");
+    searchQueries.push("~features_bit & ? = 0");
     queryParams.push(featuresBit);
   }
 
