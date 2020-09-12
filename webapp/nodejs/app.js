@@ -175,10 +175,11 @@ app.get('/api/chair/search', async (req, res, next) => {
 
   if (!!features) {
     const featureConditions = features.split(',');
-    for (const featureCondition of featureConditions) {
-      searchQueries.push("features LIKE CONCAT('%', ?, '%')");
-      queryParams.push(featureCondition);
-    }
+    const featuresBit = featureConditions.flat_map((acc, f) => {
+      return acc & featuresBitJSON.estate[f];
+    }, 0);
+    searchQueries.push("~features_bit&? = 0");
+    queryParams.push(featuresBit)
   }
 
   if (searchQueries.length === 0) {
@@ -335,10 +336,11 @@ app.get('/api/estate/search', async (req, res, next) => {
 
   if (!!features) {
     const featureConditions = features.split(',');
-    for (const featureCondition of featureConditions) {
-      searchQueries.push("features LIKE CONCAT('%', ?, '%')");
-      queryParams.push(featureCondition);
-    }
+    const featuresBit = featureConditions.flat_map((acc, f) => {
+      return acc & featuresBitJSON.estate[f];
+    }, 0);
+    searchQueries.push("~features_bit&? = 0");
+    queryParams.push(featuresBit);
   }
 
   if (searchQueries.length === 0) {
