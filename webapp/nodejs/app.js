@@ -28,6 +28,9 @@ const dbinfo = {
   connectionLimit: 10,
 };
 
+const ESTATE_SELECT_FIELDS =
+  'id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features';
+
 const app = express();
 const db = mysql.createPool(dbinfo);
 app.set('db', db);
@@ -57,7 +60,7 @@ app.get('/api/estate/low_priced', async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const es = await query('SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?', [LIMIT]);
+    const es = await query(`SELECT ${ESTATE_SELECT_FIELDS} FROM estate ORDER BY rent ASC, id ASC LIMIT ?`, [LIMIT]);
     const estates = es.map((estate) => camelcaseKeys(estate));
     res.json({ estates });
   } catch (e) {
@@ -355,7 +358,7 @@ app.get('/api/estate/search', async (req, res, next) => {
   const pageNum = parseInt(page, 10);
   const perPageNum = parseInt(perPage, 10);
 
-  const sqlprefix = 'SELECT * FROM estate WHERE ';
+  const sqlprefix = `SELECT ${ESTATE_SELECT_FIELDS} FROM estate WHERE `;
   const searchCondition = searchQueries.join(' AND ');
   const limitOffset = ' ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?';
   const countprefix = 'SELECT COUNT(*) as count FROM estate WHERE ';
@@ -389,7 +392,7 @@ app.post('/api/estate/req_doc/:id', async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
-    const [estate] = await query('SELECT id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features FROM estate WHERE id = ?', [id]);
+    const [estate] = await query(`SELECT ${ESTATE_SELECT_FIELDS} FROM estate WHERE id = ?`, [id]);
     if (estate == null) {
       res.status(404).send('Not Found');
       return;
@@ -409,13 +412,12 @@ app.post('/api/estate/nazotte', async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
 
   try {
-    const coordinatesToText =
-      `POLYGON((${coordinates.map((coordinate) => `${coordinate.latitude} ${coordinate.longitude}`).join(',')}))`;
-    const queryStr = `SELECT id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features FROM estate WHERE ST_Contains(ST_PolygonFromText('${coordinatesToText}'), latitude_longitude) ORDER BY popularity DESC, id ASC LIMIT ${NAZOTTE_LIMIT}`;
+    const coordinatesToText = `POLYGON((${coordinates
+      .map((coordinate) => `${coordinate.latitude} ${coordinate.longitude}`)
+      .join(',')}))`;
+    const queryStr = `SELECT ${ESTATE_SELECT_FIELDS} FROM estate WHERE ST_Contains(ST_PolygonFromText('${coordinatesToText}'), latitude_longitude) ORDER BY popularity DESC, id ASC LIMIT ${NAZOTTE_LIMIT}`;
 
-    const estates = await query(
-      queryStr,
-    );
+    const estates = await query(queryStr);
 
     const results = {
       estates: estates.map((estate) => camelcaseKeys(estate)),
@@ -436,7 +438,7 @@ app.get('/api/estate/:id', async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
-    const [estate] = await query('SELECT id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features FROM estate WHERE id = ?', [id]);
+    const [estate] = await query(`SELECT ${ESTATE_SELECT_FIELDS} FROM estate WHERE id = ?`, [id]);
     if (estate == null) {
       res.status(404).send('Not Found');
       return;
@@ -457,13 +459,11 @@ app.get('/api/recommended_estate/:id', async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const [chair] = await query('SELECT * FROM chair WHERE id = ?', [id]);
-    const sorted = [chair.width, chair.height, chair.depth].sort(
-      (a, b) => a - b
-    );
+    const sorted = [chair.width, chair.height, chair.depth].sort((a, b) => a - b);
     const min1 = sorted[0];
     const min2 = sorted[1];
     const es = await query(
-      'SELECT id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) ORDER BY popularity DESC, id ASC LIMIT ?',
+      `SELECT ${ESTATE_SELECT_FIELDS} FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) ORDER BY popularity DESC, id ASC LIMIT ?`,
       [min1, min2, min2, min1, LIMIT],
     );
     const estates = es.map((estate) => camelcaseKeys(estate));
@@ -517,7 +517,19 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
       const items = csv[i];
       await query(
         'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?)',
-        [items[0], items[1], items[2], items[3], items[4], `POINT(${items[5]} ${items[6]})`, items[7], items[8], items[9], items[10], items[11]],
+        [
+          items[0],
+          items[1],
+          items[2],
+          items[3],
+          items[4],
+          `POINT(${items[5]} ${items[6]})`,
+          items[7],
+          items[8],
+          items[9],
+          items[10],
+          items[11],
+        ],
       );
     }
     await commit();
