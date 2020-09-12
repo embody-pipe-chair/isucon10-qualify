@@ -1,6 +1,6 @@
 ---
   file:            # string
-  sort:            avg # max|min|avg|sum|count|uri|method|max-body|min-body|avg-body|sum-body|p1|p50|p99|stddev
+  sort:            sum # max|min|avg|sum|count|uri|method|max-body|min-body|avg-body|sum-body|p1|p50|p99|stddev
   reverse:         true # boolean
   query_string:    # boolean
   format:          # string
