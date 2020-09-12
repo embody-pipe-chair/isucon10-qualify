@@ -1,4 +1,5 @@
 APP_SERVICE_NAME:=isuumo.nodejs.service
+DATE:=`date +%s`
 
 .SILENT:
 
@@ -15,16 +16,16 @@ copy_conf: ## update and reload systemd, nginx config files
 	$(MAKE) __copy_nginx_conf
 
 define __rotate_log
-	cp /var/log/nginx/access.log /var/log/nginx/access.log.$(date +%s)
-	echo > /var/log/nginx/access.log
-	cp /var/log/mysql/mysql-slow.log /var/log/mysql/mysql-slow.log.$(date +%s)
-	echo > /var/lib/mysql/mysql-slow.log
+
 endef
 export __rotate_log
 rotate_log: ## rotate logs of nginx, mysql logs
 	echo "\e[32mRotate logs\e[m"
-	sudo bash -c '$${__rotate_log}'
 
+	sudo cp /var/log/nginx/access.log /var/log/nginx/access.log.$(DATE)
+	echo > /var/log/nginx/access.log
+	sudo cp /var/log/mysql/mysql-slow.log /var/log/mysql/mysql-slow.log.$(DATE)
+	echo > /var/log/mysql/mysql-slow.log
 alp: ## alp /var/log/nginx/access.log
 	sudo cat /var/log/nginx/access.log | alp ltsv -c alp_config.yml | less -S
 
@@ -36,7 +37,7 @@ __copy_nginx_conf:
 
 __copy_mysql_conf:
 	echo "\e[32mCopy mysql.cnf\e[m"
-	sudo cp ./mysql.cnf /etc/mysql/mysql.cnf
+	sudo cp ./mysql.cnf /etc/mysql/my.cnf
 	sudo mysqld --verbose --help > /dev/null
 	sudo systemctl restart mysql
 	sudo systemctl --no-pager status mysql

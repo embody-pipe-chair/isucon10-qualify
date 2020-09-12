@@ -45,7 +45,7 @@ app.post("/initialize", async (req, res, next) => {
     const execfiles = dbfiles.map((file) => path.join(dbdir, file));
     for (const execfile of execfiles) {
       await exec(
-        `mysql -h ${dbinfo.host} -u ${dbinfo.user} -p${dbinfo.password} -P ${dbinfo.port} ${dbinfo.database} < ${execfile}`
+        `bash -c 'mysql -h ${dbinfo.host} -u ${dbinfo.user} -p${dbinfo.password} -P ${dbinfo.port} ${dbinfo.database} < ${execfile}'`
       );
     }
     res.json({
