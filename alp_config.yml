@@ -1,7 +1,7 @@
 ---
   file:            # string
-  sort:            # max|min|avg|sum|count|uri|method|max-body|min-body|avg-body|sum-body|p1|p50|p99|stddev
-  reverse:         # boolean
+  sort:            avg # max|min|avg|sum|count|uri|method|max-body|min-body|avg-body|sum-body|p1|p50|p99|stddev
+  reverse:         true # boolean
   query_string:    # boolean
   format:          # string
   limit:           # 5000
@@ -36,10 +36,14 @@
     status_subexp:        # string
   matching_groups:
     - /images/chair/.+.png
-    - /api/estate/.+
-    - /api/chair/.+
-    - /api/chair/buy/.+
+    - /api/estate/nazotte
+    - /api/estate/search/condition
+    - /api/estate/search
+    - /api/estate/low_priced
     - /api/estate/req_doc/.+
+    - /api/estate/[0-9].+
+    - /api/chair/[0-9].+
+    - /api/chair/buy/[0-9].+
     - /api/recommended_estate/.+
-    - /images/* 
+    - /images/*
     - /_next/*
