@@ -176,7 +176,7 @@ app.get('/api/chair/search', async (req, res, next) => {
   if (!!features) {
     const featureConditions = features.split(',');
     const featuresBit = featureConditions.reduce((sum, f) => {
-      return sum + featuresBitJSON.chair[f];
+      return sum + (featuresBitJSON.chair[f] || 0);
     }, 0);
     searchQueries.push("~features_bit & ? = 0");
     queryParams.push(featuresBit)
@@ -337,7 +337,7 @@ app.get('/api/estate/search', async (req, res, next) => {
   if (!!features) {
     const featureConditions = features.split(',');
     const featuresBit = featureConditions.reduce((sum, f) => {
-      return sum + featuresBitJSON.estate[f];
+      return sum + (featuresBitJSON.estate[f] || 0);
     }, 0);
     searchQueries.push("~features_bit & ? = 0");
     queryParams.push(featuresBit);
@@ -493,8 +493,7 @@ app.post('/api/chair', upload.single('chairs'), async (req, res, next) => {
       const features_raw = items[9];
       const features = features_raw.split(',');
       const featuresBit = features.reduce((sum, f) => {
-        console.log(sum, f, featuresBitJSON.chair[f]);
-        return sum + featuresBitJSON.chair[f];
+        return sum + (featuresBitJSON.chair[f] || 0);
       }, 0)
 
       await query(
@@ -526,13 +525,10 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
       const features_raw = items[10];
-      console.log(features_raw)
       const features = features_raw.split(',');
       const featuresBit = features.reduce((sum, f) => {
-        console.log(sum, f, featuresBitJSON.estate[f]);
-        return sum + featuresBitJSON.estate[f];
+        return sum + (featuresBitJSON.estate[f] || 0);
       }, 0)
-      console.log(features, featuresBit)
       await query(
         'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity, features_bit) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?,?)',
         [
