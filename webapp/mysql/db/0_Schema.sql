@@ -34,7 +34,8 @@ CREATE TABLE isuumo.chair
     features    VARCHAR(64)     NOT NULL,
     kind        VARCHAR(64)     NOT NULL,
     popularity  INTEGER         NOT NULL,
-    stock       INTEGER         NOT NULL
+    stock       INTEGER         NOT NULL,
+    features_bit BIGINT(64) unsigned not null default '0'
 );
 
 -- index for SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT 20
