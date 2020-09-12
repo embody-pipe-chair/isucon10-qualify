@@ -1,0 +1,24 @@
+{
+  "settings": {
+    "files.watcherExclude": {
+      "**/.git/objects/**": true,
+      "**/.git/subtree-cache/**": true,
+      "**/node_modules/*/**": true,
+      "**/public/**": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vsliveshare.vsliveshare",
+      "raynigon.nginx-formatter",
+      "william-voyek.vscode-nginx",
+      "hangxingliu.vscode-nginx-conf-hint",
+      "esbenp.prettier-vscode"
+    ]
+  },
+  "folders": [
+    {
+      "path": "/home/isucon/isuumo"
+    }
+  ]
+}
