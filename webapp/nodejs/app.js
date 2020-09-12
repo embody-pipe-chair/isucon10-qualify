@@ -411,14 +411,14 @@ app.post('/api/estate/nazotte', async (req, res, next) => {
   try {
     const coordinatesToText =
       `POLYGON((${coordinates.map((coordinate) => `${coordinate.latitude} ${coordinate.longitude}`).join(',')}))`;
-    const queryStr = `SELECT id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features FROM estate WHERE ST_Contains(ST_PolygonFromText('${coordinatesToText}'), latitude_longitude) ORDER BY popularity DESC, id ASC`;
+    const queryStr = `SELECT id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features FROM estate WHERE ST_Contains(ST_PolygonFromText('${coordinatesToText}'), latitude_longitude) ORDER BY popularity DESC, id ASC LIMIT ${NAZOTTE_LIMIT}`;
 
     const estates = await query(
       queryStr,
     );
 
     const results = {
-      estates: estates.slice(0, NAZOTTE_LIMIT).map((estate) => camelcaseKeys(estate)),
+      estates: estates.map((estate) => camelcaseKeys(estate)),
     };
     results.count = results.estates.length;
 
