@@ -413,8 +413,6 @@ app.post('/api/estate/nazotte', async (req, res, next) => {
       `POLYGON((${coordinates.map((coordinate) => `${coordinate.latitude} ${coordinate.longitude}`).join(',')}))`;
     const queryStr = `SELECT id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features FROM estate WHERE ST_Contains(ST_PolygonFromText('${coordinatesToText}'), latitude_longitude) ORDER BY popularity DESC, id ASC`;
 
-    console.log(queryStr);
-
     const estates = await query(
       queryStr,
     );
