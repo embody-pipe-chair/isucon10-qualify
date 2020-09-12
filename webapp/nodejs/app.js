@@ -459,12 +459,14 @@ app.get('/api/recommended_estate/:id', async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const [chair] = await query('SELECT * FROM chair WHERE id = ?', [id]);
-    const w = chair.width;
-    const h = chair.height;
-    const d = chair.depth;
+    const sorted = [chair.width, chair.height, chair.depth].sort(
+      (a, b) => a - b
+    );
+    const min1 = sorted[0];
+    const min2 = sorted[1];
     const es = await query(
-      'SELECT id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?',
-      [w, h, w, d, h, w, h, d, d, w, d, h, LIMIT],
+      'SELECT id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) ORDER BY popularity DESC, id ASC LIMIT ?',
+      [min1, min2, min2, min1, LIMIT],
     );
     const estates = es.map((estate) => camelcaseKeys(estate));
     res.json({ estates });
