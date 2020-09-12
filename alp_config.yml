@@ -7,7 +7,6 @@
   limit:           # 5000
   noheaders:       # boolean
   show_footers:    # boolean
-  matching_groups: # array
   filters:         # string
   output:          # string(comma separated)
   pos_file:        # string
@@ -35,15 +34,15 @@
     body_bytes_subexp:    # string
     status_subexp:        # string
   matching_groups:
-    - /images/chair/.+.png
+    - /images/chair/.+
     - /api/estate/nazotte
     - /api/estate/search/condition
     - /api/estate/search
     - /api/estate/low_priced
     - /api/estate/req_doc/.+
-    - /api/estate/[0-9].+
-    - /api/chair/[0-9].+
-    - /api/chair/buy/[0-9].+
+    - /api/estate/[0-9]+
+    - /api/chair/[0-9]+
+    - /api/chair/buy/[0-9]+
     - /api/recommended_estate/.+
-    - /images/*
-    - /_next/*
+    - /images/.+
+    - /_next/.+
