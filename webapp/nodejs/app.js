@@ -36,7 +36,7 @@ const app = express();
 const db = mysql.createPool(dbinfo);
 app.set('db', db);
 
-app.use(morgan('combined'));
+// app.use(morgan('combined'));
 app.use(express.json());
 app.post('/initialize', async (req, res, next) => {
   try {
