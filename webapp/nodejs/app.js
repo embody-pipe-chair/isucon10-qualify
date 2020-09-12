@@ -526,11 +526,13 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
       const features_raw = items[10];
+      console.log(features_raw)
       const features = features_raw.split(',');
       const featuresBit = features.reduce((sum, f) => {
         console.log(sum, f, featuresBitJSON.estate[f]);
         return sum + featuresBitJSON.estate[f];
       }, 0)
+      console.log(features, featuresBit)
       await query(
         'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity, features_bit) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?,?)',
         [
