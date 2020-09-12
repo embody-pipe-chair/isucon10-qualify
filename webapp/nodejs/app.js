@@ -527,7 +527,7 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
       const features_raw = items[10];
       const features = features_raw.split(',');
       const featuresBit = features.reduce((sum, f) => {
-        return sum & featuresBitJSON.estate[f];
+        return sum + featuresBitJSON.estate[f];
       }, 0)
       await query(
         'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity, features_bit) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?,?)',
