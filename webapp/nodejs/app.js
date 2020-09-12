@@ -175,7 +175,7 @@ app.get('/api/chair/search', async (req, res, next) => {
 
   if (!!features) {
     const featureConditions = features.split(',');
-    const featuresBit = featureConditions.flat_map((acc, f) => {
+    const featuresBit = featureConditions.flatMap((acc, f) => {
       return acc & featuresBitJSON.estate[f];
     }, 0);
     searchQueries.push("~features_bit&? = 0");
@@ -336,7 +336,7 @@ app.get('/api/estate/search', async (req, res, next) => {
 
   if (!!features) {
     const featureConditions = features.split(',');
-    const featuresBit = featureConditions.flat_map((acc, f) => {
+    const featuresBit = featureConditions.flatMap((acc, f) => {
       return acc & featuresBitJSON.estate[f];
     }, 0);
     searchQueries.push("~features_bit&? = 0");
@@ -492,7 +492,7 @@ app.post('/api/chair', upload.single('chairs'), async (req, res, next) => {
       const items = csv[i];
       const features_raw = items[10];
       const features = features_raw.split(',');
-      const featuresBit = features.flat_map((acc, f) => {
+      const featuresBit = features.flatMap((acc, f) => {
         return acc & featuresBitJSON.chair[f];
       }, 0)
 
@@ -526,7 +526,7 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
       const items = csv[i];
       const features_raw = items[10];
       const features = features_raw.split(',');
-      const featuresBit = features.flat_map((acc, f) => {
+      const featuresBit = features.flatMap((acc, f) => {
         return acc & featuresBitJSON.estate[f];
       }, 0)
       await query(
