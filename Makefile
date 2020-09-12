@@ -67,10 +67,6 @@ install_essentials: ## install essential tools!
 	git config --global user.name "Kwappa Penguin"
 	git config --global user.email "kp@example.com"
 	git config --global pull.rebase true
-	
-	echo "\e[32mGenerate Keygen\e[m"
-	ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa <<<y 2>&1 >/dev/null
-	cat ~/.ssh/id_rsa.pub
 
 help: ## Display this help screen
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
