@@ -17,7 +17,10 @@ CREATE TABLE isuumo.estate
     door_width  INTEGER             NOT NULL,
     features    VARCHAR(64)         NOT NULL,
     popularity  INTEGER             NOT NULL,
-    features_bit BIGINT(64) unsigned not null default '0'
+    features_bit BIGINT(64) unsigned not null default '0',
+    door_height_range   INTEGER     NOT NULL,
+    door_width_range    INTEGER     NOT NULL,
+    rent_range  INTEGER             NOT NULL
 );
 
 CREATE TABLE isuumo.chair
@@ -35,7 +38,11 @@ CREATE TABLE isuumo.chair
     kind        VARCHAR(64)     NOT NULL,
     popularity  INTEGER         NOT NULL,
     stock       INTEGER         NOT NULL,
-    features_bit BIGINT(64) unsigned not null default '0'
+    features_bit BIGINT(64) unsigned not null default '0',
+    price_range INTEGER         NOT NULL,
+    height_range    INTEGER     NOT NULL,
+    width_range INTEGER         NOT NULL,
+    depth_range INTEGER         NOT NULL
 );
 
 -- index for SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT 20

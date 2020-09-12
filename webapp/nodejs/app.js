@@ -92,75 +92,23 @@ app.get('/api/chair/search', async (req, res, next) => {
   const { priceRangeId, heightRangeId, widthRangeId, depthRangeId, kind, color, features, page, perPage } = req.query;
 
   if (!!priceRangeId) {
-    const chairPrice = chairSearchCondition['price'].ranges[priceRangeId];
-    if (chairPrice == null) {
-      res.status(400).send('priceRangeID invalid');
-      return;
-    }
-
-    if (chairPrice.min !== -1) {
-      searchQueries.push('price >= ? ');
-      queryParams.push(chairPrice.min);
-    }
-
-    if (chairPrice.max !== -1) {
-      searchQueries.push('price < ? ');
-      queryParams.push(chairPrice.max);
-    }
+    searchQueries.push('price_range = ? ');
+    queryParams.push(priceRangeId);
   }
 
   if (!!heightRangeId) {
-    const chairHeight = chairSearchCondition['height'].ranges[heightRangeId];
-    if (chairHeight == null) {
-      res.status(400).send('heightRangeId invalid');
-      return;
-    }
-
-    if (chairHeight.min !== -1) {
-      searchQueries.push('height >= ? ');
-      queryParams.push(chairHeight.min);
-    }
-
-    if (chairHeight.max !== -1) {
-      searchQueries.push('height < ? ');
-      queryParams.push(chairHeight.max);
-    }
+    searchQueries.push('height_range = ? ');
+    queryParams.push(heightRangeId);
   }
 
   if (!!widthRangeId) {
-    const chairWidth = chairSearchCondition['width'].ranges[widthRangeId];
-    if (chairWidth == null) {
-      res.status(400).send('widthRangeId invalid');
-      return;
-    }
-
-    if (chairWidth.min !== -1) {
-      searchQueries.push('width >= ? ');
-      queryParams.push(chairWidth.min);
-    }
-
-    if (chairWidth.max !== -1) {
-      searchQueries.push('width < ? ');
-      queryParams.push(chairWidth.max);
-    }
+    searchQueries.push('width_range = ? ');
+    queryParams.push(widthRangeId);
   }
 
   if (!!depthRangeId) {
-    const chairDepth = chairSearchCondition['depth'].ranges[depthRangeId];
-    if (chairDepth == null) {
-      res.status(400).send('depthRangeId invalid');
-      return;
-    }
-
-    if (chairDepth.min !== -1) {
-      searchQueries.push('depth >= ? ');
-      queryParams.push(chairDepth.min);
-    }
-
-    if (chairDepth.max !== -1) {
-      searchQueries.push('depth < ? ');
-      queryParams.push(chairDepth.max);
-    }
+    searchQueries.push('depth_range = ? ');
+    queryParams.push(depthRangeId);
   }
 
   if (!!kind) {
@@ -281,57 +229,18 @@ app.get('/api/estate/search', async (req, res, next) => {
   const { doorHeightRangeId, doorWidthRangeId, rentRangeId, features, page, perPage } = req.query;
 
   if (!!doorHeightRangeId) {
-    const doorHeight = estateSearchCondition['doorHeight'].ranges[doorHeightRangeId];
-    if (doorHeight == null) {
-      res.status(400).send('doorHeightRangeId invalid');
-      return;
-    }
-
-    if (doorHeight.min !== -1) {
-      searchQueries.push('door_height >= ? ');
-      queryParams.push(doorHeight.min);
-    }
-
-    if (doorHeight.max !== -1) {
-      searchQueries.push('door_height < ? ');
-      queryParams.push(doorHeight.max);
-    }
+    searchQueries.push('door_height_range = ? ');
+    queryParams.push(doorHeightRangeId);
   }
 
   if (!!doorWidthRangeId) {
-    const doorWidth = estateSearchCondition['doorWidth'].ranges[doorWidthRangeId];
-    if (doorWidth == null) {
-      res.status(400).send('doorWidthRangeId invalid');
-      return;
-    }
-
-    if (doorWidth.min !== -1) {
-      searchQueries.push('door_width >= ? ');
-      queryParams.push(doorWidth.min);
-    }
-
-    if (doorWidth.max !== -1) {
-      searchQueries.push('door_width < ? ');
-      queryParams.push(doorWidth.max);
-    }
+    searchQueries.push('door_width_range = ? ');
+    queryParams.push(doorWidthRangeId);
   }
 
   if (!!rentRangeId) {
-    const rent = estateSearchCondition['rent'].ranges[rentRangeId];
-    if (rent == null) {
-      res.status(400).send('rentRangeId invalid');
-      return;
-    }
-
-    if (rent.min !== -1) {
-      searchQueries.push('rent >= ? ');
-      queryParams.push(rent.min);
-    }
-
-    if (rent.max !== -1) {
-      searchQueries.push('rent < ? ');
-      queryParams.push(rent.max);
-    }
+    searchQueries.push('rent_range = ? ');
+    queryParams.push(rentRangeId);
   }
 
   if (!!features) {
@@ -485,6 +394,59 @@ app.post('/api/chair', upload.single('chairs'), async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   const commit = promisify(connection.commit.bind(connection));
   const rollback = promisify(connection.rollback.bind(connection));
+
+  function convertPriceToRangeId(price) {
+    if (price < 3000) {
+      return 0;
+    } else if (price < 6000) {
+      return 1;
+    } else if (price < 9000) {
+      return 2;
+    } else if (price < 12000) {
+      return 3;
+    } else if (price < 15000) {
+      return 4;
+    } else {
+      return 5;
+    }
+  }
+
+  function convertHeightToRangeId(height) {
+    if (height < 80) {
+      return 0;
+    } else if (height < 110) {
+      return 1;
+    } else if (height < 150) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
+  function convertWidthToRangeId(width) {
+    if (width < 80) {
+      return 0;
+    } else if (width < 110) {
+      return 1;
+    } else if (width < 150) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
+  function convertDepthToRangeId(depth) {
+    if (depth < 80) {
+      return 0;
+    } else if (depth < 110) {
+      return 1;
+    } else if (depth < 150) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
   try {
     await beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
@@ -495,10 +457,14 @@ app.post('/api/chair', upload.single('chairs'), async (req, res, next) => {
       const featuresBit = features.reduce((sum, f) => {
         return sum + (featuresBitJSON.chair[f] || 0);
       }, 0)
+      const price = convertToPriceToRangeId(csv[4]);
+      const height = convertHeightToRangeId(csv[5]);
+      const width = convertWidthToRangeId(csv[6]);
+      const depth = convertDepthToRangeId(csv[7]);
 
       await query(
-        'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock, features_bit) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-        [...items, featuresBit],
+        'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock, features_bit, price_range, height_range, width_range, depth_range) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        [...items, featuresBit, price, height, width, depth],
       );
     }
     await commit();
@@ -519,6 +485,43 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   const commit = promisify(connection.commit.bind(connection));
   const rollback = promisify(connection.rollback.bind(connection));
+
+  function convertDoorHeightToRangeId(height) {
+    if (height < 80) {
+      return 0;
+    } else if (height < 110) {
+      return 1;
+    } else if (height < 150) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
+  function convertDoorWidthToRangeId(width) {
+    if (width < 80) {
+      return 0;
+    } else if (width < 110) {
+      return 1;
+    } else if (width < 150) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
+  function convertRentToRangeId(rent) {
+    if (rent < 50000) {
+      return 0;
+    } else if (rent < 100000) {
+      return 1;
+    } else if (rent < 150000) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
   try {
     await beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
@@ -529,8 +532,11 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
       const featuresBit = features.reduce((sum, f) => {
         return sum + (featuresBitJSON.estate[f] || 0);
       }, 0)
+      const height = convertDoorHeightToRangeId(csv[9]);
+      const width = convertDoorWidthToRangeId(csv[10]);
+      const rent = convertDoorRentToRangeId(csv[8]);
       await query(
-        'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity, features_bit) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?,?)',
+        'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity, features_bit, door_height, door_width_range, rent_range) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?,?,?,?,?)',
         [
           items[0],
           items[1],
@@ -544,6 +550,9 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
           items[10],
           items[11],
           featuresBit,
+          width,
+          height,
+          rent
         ],
       );
     }
