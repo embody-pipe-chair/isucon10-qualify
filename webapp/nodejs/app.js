@@ -31,6 +31,8 @@ const dbinfo = {
 
 const ESTATE_SELECT_FIELDS =
   'id, thumbnail, ST_X(latitude_longitude) AS latitude, ST_Y(latitude_longitude) AS longitude, name, address, rent, door_height, door_width, popularity, description, features';
+const CHAIR_SELECT_FIELDS =
+  'id, thumbnail, name, price, height, width, depth, popularity, stock, color, description, features, kind';
 
 const app = express();
 const db = mysql.createPool(dbinfo);
@@ -76,7 +78,7 @@ app.get('/api/chair/low_priced', async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const cs = await query('SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?', [LIMIT]);
+    const cs = await query(`SELECT ${CHAIR_SELECT_FIELDS} FROM chair WHERE is_stocked = TRUE ORDER BY price ASC, id ASC LIMIT ?`, [LIMIT]);
     const chairs = cs.map((chair) => camelcaseKeys(chair));
     res.json({ chairs });
   } catch (e) {
@@ -187,7 +189,7 @@ app.get('/api/chair/search', async (req, res, next) => {
     return;
   }
 
-  searchQueries.push('stock > 0');
+  searchQueries.push('is_stocked = TRUE');
 
   if (!page || page != +page) {
     res.status(400).send(`page condition invalid ${page}`);
@@ -202,10 +204,10 @@ app.get('/api/chair/search', async (req, res, next) => {
   const pageNum = parseInt(page, 10);
   const perPageNum = parseInt(perPage, 10);
 
-  const sqlprefix = 'SELECT * FROM chair WHERE ';
+  const sqlprefix = `SELECT ${CHAIR_SELECT_FIELDS} FROM chair WHERE `;
   const searchCondition = searchQueries.join(' AND ');
   const limitOffset = ' ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?';
-  const countprefix = 'SELECT COUNT(*) as count FROM chair WHERE ';
+  const countprefix = 'SELECT COUNT(1) as count FROM chair WHERE ';
 
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
@@ -235,7 +237,7 @@ app.get('/api/chair/:id', async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
-    const [chair] = await query('SELECT * FROM chair WHERE id = ?', [id]);
+    const [chair] = await query(`SELECT ${CHAIR_SELECT_FIELDS} FROM chair WHERE id = ?`, [id]);
     if (chair == null || chair.stock <= 0) {
       res.status(404).send('Not Found');
       return;
@@ -258,13 +260,13 @@ app.post('/api/chair/buy/:id', async (req, res, next) => {
   try {
     const id = req.params.id;
     await beginTransaction();
-    const [chair] = await query('SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE', [id]);
+    const [chair] = await query(`SELECT ${CHAIR_SELECT_FIELDS} FROM chair WHERE id = ? AND is_stocked = TRUE FOR UPDATE`, [id]);
     if (chair == null) {
       res.status(404).send('Not Found');
       await rollback();
       return;
     }
-    await query('UPDATE chair SET stock = ? WHERE id = ?', [chair.stock - 1, id]);
+    await query('UPDATE chair SET stock = ?, is_stocked = ? WHERE id = ?', [chair.stock - 1, chair.stock - 1 > 0, id]);
     await commit();
     res.json({ ok: true });
   } catch (e) {
@@ -364,7 +366,7 @@ app.get('/api/estate/search', async (req, res, next) => {
   const sqlprefix = `SELECT ${ESTATE_SELECT_FIELDS} FROM estate WHERE `;
   const searchCondition = searchQueries.join(' AND ');
   const limitOffset = ' ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?';
-  const countprefix = 'SELECT COUNT(*) as count FROM estate WHERE ';
+  const countprefix = 'SELECT COUNT(1) as count FROM estate WHERE ';
 
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
@@ -461,7 +463,7 @@ app.get('/api/recommended_estate/:id', async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const [chair] = await query('SELECT * FROM chair WHERE id = ?', [id]);
+    const [chair] = await query(`SELECT ${CHAIR_SELECT_FIELDS} FROM chair WHERE id = ?`, [id]);
     const sorted = [chair.width, chair.height, chair.depth].sort((a, b) => a - b);
     const min1 = sorted[0];
     const min2 = sorted[1];
@@ -497,8 +499,8 @@ app.post('/api/chair', upload.single('chairs'), async (req, res, next) => {
       }, 0)
 
       await query(
-        'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock, features_bit) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-        [...items, featuresBit],
+        'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock, is_stocked, features_bit) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        [...items, items[12] != 0, featuresBit],
       );
     }
     await commit();
