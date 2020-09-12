@@ -42,3 +42,6 @@ CREATE INDEX idx_estate_rent_id ON isuumo.estate (rent asc, id asc);
 -- index for SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT 20
 CREATE INDEX idx_stock ON isuumo.chair (stock);
 CREATE INDEX idx_price ON isuumo.chair (price);
+
+-- index for estate nazotte
+CREATE SPATIAL INDEX sp_index_ll ON isuumo.estate (latitude_longitude);
