@@ -15,6 +15,7 @@ const promisify = util.promisify;
 const exec = promisify(cp.exec);
 const chairSearchCondition = require('../fixture/chair_condition.json');
 const estateSearchCondition = require('../fixture/estate_condition.json');
+const featuresBitJSON = require("../fixture/features_bit.json");
 
 const PORT = process.env.PORT ?? 1323;
 const LIMIT = 20;
@@ -174,10 +175,11 @@ app.get('/api/chair/search', async (req, res, next) => {
 
   if (!!features) {
     const featureConditions = features.split(',');
-    for (const featureCondition of featureConditions) {
-      searchQueries.push("features LIKE CONCAT('%', ?, '%')");
-      queryParams.push(featureCondition);
-    }
+    const featuresBit = featureConditions.reduce((sum, f) => {
+      return sum + (featuresBitJSON.chair[f] || 0);
+    }, 0);
+    searchQueries.push("~features_bit & ? = 0");
+    queryParams.push(featuresBit)
   }
 
   if (searchQueries.length === 0) {
@@ -334,10 +336,11 @@ app.get('/api/estate/search', async (req, res, next) => {
 
   if (!!features) {
     const featureConditions = features.split(',');
-    for (const featureCondition of featureConditions) {
-      searchQueries.push("features LIKE CONCAT('%', ?, '%')");
-      queryParams.push(featureCondition);
-    }
+    const featuresBit = featureConditions.reduce((sum, f) => {
+      return sum + (featuresBitJSON.estate[f] || 0);
+    }, 0);
+    searchQueries.push("~features_bit & ? = 0");
+    queryParams.push(featuresBit);
   }
 
   if (searchQueries.length === 0) {
@@ -487,9 +490,15 @@ app.post('/api/chair', upload.single('chairs'), async (req, res, next) => {
     const csv = parse(req.file.buffer, { skip_empty_line: true });
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
+      const features_raw = items[9];
+      const features = features_raw.split(',');
+      const featuresBit = features.reduce((sum, f) => {
+        return sum + (featuresBitJSON.chair[f] || 0);
+      }, 0)
+
       await query(
-        'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
-        items,
+        'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock, features_bit) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        [...items, featuresBit],
       );
     }
     await commit();
@@ -515,8 +524,13 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
     const csv = parse(req.file.buffer, { skip_empty_line: true });
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
+      const features_raw = items[10];
+      const features = features_raw.split(',');
+      const featuresBit = features.reduce((sum, f) => {
+        return sum + (featuresBitJSON.estate[f] || 0);
+      }, 0)
       await query(
-        'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?)',
+        'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity, features_bit) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?,?)',
         [
           items[0],
           items[1],
@@ -529,6 +543,7 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
           items[9],
           items[10],
           items[11],
+          featuresBit,
         ],
       );
     }
