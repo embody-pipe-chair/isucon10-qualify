@@ -492,8 +492,8 @@ app.post('/api/chair', upload.single('chairs'), async (req, res, next) => {
       const items = csv[i];
       const features_raw = items[10];
       const features = features_raw.split(',');
-      const featuresBit = features.flatMap((acc, f) => {
-        return acc & featuresBitJSON.chair[f];
+      const featuresBit = features.reduce((sum, f) => {
+        return sum + featuresBitJSON.chair[f];
       }, 0)
 
       await query(
@@ -526,8 +526,8 @@ app.post('/api/estate', upload.single('estates'), async (req, res, next) => {
       const items = csv[i];
       const features_raw = items[10];
       const features = features_raw.split(',');
-      const featuresBit = features.flatMap((acc, f) => {
-        return acc & featuresBitJSON.estate[f];
+      const featuresBit = features.reduce((sum, f) => {
+        return sum & featuresBitJSON.estate[f];
       }, 0)
       await query(
         'INSERT INTO estate(id, name, description, thumbnail, address, latitude_longitude, rent, door_height, door_width, features, popularity, features_bit) VALUES(?,?,?,?,?,ST_GeomFromText(?),?,?,?,?,?,?)',
